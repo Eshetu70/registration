@@ -3,66 +3,78 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 const nodemailer = require("nodemailer");
-require("dotenv").config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 3000; // You can change this if needed
 
-// ✅ Correct the path to the "registration" folder
-const publicDir = path.join(__dirname, );
+// ✅ Ensure "uploads" directory exists
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
 
-// ✅ Serve the `index.html` file when visiting `/`
+// ✅ Multer Setup (for file uploads)
+const upload = multer({ dest: uploadDir });
+
+// ✅ Serve static files (like index.html)
+const publicDir = path.join(__dirname, ); // Ensure 'public' folder exists
+app.use(express.static(publicDir));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.get("/", (req, res) => {
-    res.sendFile(path.resolve(publicDir, "index.html"));
+    res.sendFile(path.join(publicDir, "index.html"));
 });
 
-// ✅ Serve static files (like CSS, JS)
-app.use(express.static(publicDir));
-
-// Multer Setup (for file uploads)
-const upload = multer({ dest: "uploads/" });
-
-// Email Configuration
+// ✅ Email Configuration (Directly Setting Credentials)
 const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com", // Use Outlook/Yahoo host if needed
+    port: 465,
+    secure: true,
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: "eshetuwek1@gmail.com", // Replace with your email
+        pass: "nxit sich jbfm kkyd", // Replace with your generated App Password
     },
 });
 
-// Handle file upload & registration
+// ✅ Handle file upload & registration
 app.post("/upload", upload.single("file"), async (req, res) => {
     const { name, email } = req.body;
     if (!req.file || !name || !email) {
-        return res.status(400).send("All fields are required.");
+        return res.status(400).json({ error: "All fields are required." });
     }
 
     const filePath = req.file.path;
     const fileName = req.file.originalname;
 
     try {
-        // Send email notification
+        // ✅ Send email notification with file attachment
         const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: "eshetuwek1@gmail.com",
+            from: "your-email@gmail.com", // Must match the email in transporter.auth
+            to: "eshetuwek1@gmail.com", // Change recipient email if needed
             subject: "New User Registration & File Upload",
             text: `New Registration:\n\nName: ${name}\nEmail: ${email}\nUploaded File: ${fileName}`,
+            attachments: [
+                {
+                    filename: fileName,
+                    path: filePath,
+                },
+            ],
         };
 
         await transporter.sendMail(mailOptions);
 
-        // Clean up temp file
+        // ✅ Clean up temp file after email is sent
         fs.unlinkSync(filePath);
 
-        res.send(`Thank you, ${name}. Your file has been uploaded.`);
+        res.json({ message: `Thank you, ${name}. Your file has been uploaded and email sent.` });
     } catch (error) {
-        console.error(error);
-        res.status(500).send("Error uploading file.");
+        console.error("Upload error:", error);
+        res.status(500).json({ error: "Error uploading file or sending email." });
     }
 });
 
-// Start the server
+// ✅ Start the server
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });
