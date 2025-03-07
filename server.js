@@ -39,7 +39,7 @@ const transporter = nodemailer.createTransport({
 
 // ✅ Handle file upload & registration
 app.post("/upload", upload.single("file"), async (req, res) => {
-    const { name, email } = req.body;
+    const { name, email, message } = req.body;
     if (!req.file || !name || !email || !message) {
         return res.status(400).json({ error: "All fields are required." });
     }
@@ -53,7 +53,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
             from: "your-email@gmail.com", // Must match the email in transporter.auth
             to: "eshetuwek1@gmail.com", // Change recipient email if needed
             subject: "New User Registration & File Upload",
-            text: `New Registration:\n\nName: ${name}\nEmail: ${email}\nUploaded File: ${fileName}`,
+            text: `New Registration:\n\nName: ${name}\nEmail: ${email}\nMessage: ${message}\nUploaded File: ${fileName}`,
             attachments: [
                 {
                     filename: fileName,
