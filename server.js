@@ -67,7 +67,8 @@ app.post("/upload", upload.single("file"), async (req, res) => {
         // ✅ Clean up temp file after email is sent
         fs.unlinkSync(filePath);
 
-        res.json({ message: `Thank you, ${name}. Your file has been uploaded and email sent.` });
+       
+        res.send(`Thank you, ${name}. your file has been uploaded and email sent.`);
     } catch (error) {
         console.error("Upload error:", error);
         res.status(500).json({ error: "Error uploading file or sending email." });
