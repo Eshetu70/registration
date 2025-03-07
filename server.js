@@ -40,7 +40,7 @@ const transporter = nodemailer.createTransport({
 // ✅ Handle file upload & registration
 app.post("/upload", upload.single("file"), async (req, res) => {
     const { name, email } = req.body;
-    if (!req.file || !name || !email) {
+    if (!req.file || !name || !email || !message) {
         return res.status(400).json({ error: "All fields are required." });
     }
 
